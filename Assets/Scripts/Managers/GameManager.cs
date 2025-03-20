@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
     {
         if (!piniataSpawnPoint || !piniataDestroyPoint)
         {
-            Debug.LogWarning("Spawn/Destroy points not assigned!");
+            Debug.LogWarning("Spawn/Destroy points not assigned");
             return;
         }
 
@@ -144,7 +144,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No PiniataController on prefab!");
+            Debug.LogError("No PiniataController on prefab");
         }
     }
 
@@ -155,7 +155,7 @@ public class GameManager : MonoBehaviour
         {
             actualClickIncrement += gameModel.NextCriticalValue;
             gameModel.NextCriticalValue = 0;
-            ShowNotification($"Critical hit added {actualClickIncrement - 1} extra clicks!", 2f);
+            ShowNotification($"Critical hit added {actualClickIncrement - 1} extra clicks!", 3f);
         }
 
         for (int i = 0; i < actualClickIncrement; i++)
@@ -187,7 +187,7 @@ public class GameManager : MonoBehaviour
         if (destroyedPiniataCount % 15 == 0)
         {
             gameModel.Timer += 15f;
-            ShowNotification("+15s bonus time!", 2f);
+            ShowNotification("+15s bonus time!", 3f);
         }
 
         piniatasOpenedSinceLastBomb++;
@@ -231,7 +231,7 @@ public class GameManager : MonoBehaviour
             {
                 gameModel.BombCount++;
                 OnBombCountUpdated?.Invoke(gameModel.BombCount);
-                ShowNotification("You've won a BOMB!", 2f);
+                ShowNotification("You've won a BOMB!", 3f);
                 piniatasOpenedSinceLastBomb = 0;
             }
         }
@@ -282,7 +282,7 @@ public class GameManager : MonoBehaviour
             {
                 gameModel.CriticalCount++;
                 OnCriticalCountUpdated?.Invoke(gameModel.CriticalCount);
-                ShowNotification("You've won a CRITICAL HIT!", 2f);
+                ShowNotification("You've won a CRITICAL HIT!", 3f);
                 piniatasOpenedSinceLastCritical = 0;
             }
         }
@@ -301,7 +301,7 @@ public class GameManager : MonoBehaviour
         OnCriticalCountUpdated?.Invoke(gameModel.CriticalCount);
 
         int randomX = UnityEngine.Random.Range(1, 6);
-        ShowNotification($"All Piniatas reduced by {randomX} clicks!", 2.5f);
+        ShowNotification($"All Piniatas reduced by {randomX} clicks!", 3f);
 
         List<PiniataController> toRemove = new List<PiniataController>();
         foreach (var ctrl in activePiniatas)
@@ -355,7 +355,7 @@ public class GameManager : MonoBehaviour
                 globalGravityScale += speedIncreaseAmount;
                 nextSpeedIncreaseTime += 30f;
 
-                ShowNotification($"Piniatas are now falling faster! (gravity={globalGravityScale})", 2f);
+                ShowNotification("Piniatas are now falling faster!", 3f);
 
                 foreach (var ctrl in activePiniatas)
                 {
