@@ -148,7 +148,7 @@ GameObject:
   - component: {fileID: 5120124581123721290}
   - component: {fileID: 377328356064864432}
   m_Layer: 5
-  m_Name: PiniataButton
+  m_Name: PiniataPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

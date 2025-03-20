@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class GameView : MonoBehaviour
@@ -9,114 +8,87 @@ public class GameView : MonoBehaviour
     [Header("Texts")]
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private TextMeshProUGUI piniataNumText;
+    [SerializeField] private TextMeshProUGUI destroyedCountText;
     [SerializeField] private TextMeshProUGUI bombCountText;
     [SerializeField] private TextMeshProUGUI criticalCountText;
-    
+
     [Header("GameObjects and UI")]
-    [SerializeField] private GameObject piniataOnCooldownObj;
     [SerializeField] private Button bombButton;
     [SerializeField] private Button criticalButton;
     [SerializeField] private GameObject Notifications;
-    
-    [Header("Effects and Animations")]
-    [SerializeField] private ParticleSystem hitParticleSystem;
 
-    private ParticleSystem piniataHitParticleInstance;
+    // If you have leftover references, you can remove them:0
+    // [SerializeField] private GameObject piniataOnCooldownObj;
+
+    private void Awake()
+    {
+        // ...
+    }
 
     public void Init(GameManager manager)
     {
         manager.OnScoreUpdated += UpdateScore;
-        manager.OnCooldownTriggered += HandleCooldownOverlay;
-        manager.OnBombCountUpdated += UpdateBombUI; 
+        manager.OnBombCountUpdated += UpdateBombUI;
         manager.OnCriticalCountUpdated += UpdateCriticalUI;
-        
+
         bombButton.AddSquishEffect(0.8f,0.1f);
         bombButton.onClick.AddListener(() => manager.OnBombButtonClicked());
-        
+
         criticalButton.AddSquishEffect(0.8f, 0.1f);
         criticalButton.onClick.AddListener(() => manager.OnCriticalButtonClicked());
-    
-        Notifications.gameObject.SetActive(false);
-        piniataOnCooldownObj.SetActive(false);
-        bombButton.gameObject.SetActive(true);
-    }
 
+        Notifications.gameObject.SetActive(false);
+    }
 
     public void UpdateScore(int newScore)
     {
-        scoreText.text = $"Score: {newScore}";
+        if (scoreText) scoreText.text = $"Score: {newScore}";
     }
 
     public void UpdateTimer(float timeLeft)
     {
-        timerText.text = "Time Left: " + Mathf.Ceil(timeLeft);
+        if (timerText) timerText.text = "Time Left: " + Mathf.Ceil(timeLeft);
     }
 
-    public void UpdatePiniataNum(float piñataNum)
+    public void UpdatePiniatasDestroyed(int val)
     {
-        piniataNumText.text = "Piniata: " + piñataNum + "#";
+        if (destroyedCountText) destroyedCountText.text = $"Destroyed: {val}";
+    }
+
+    public void UpdateBombUI(int newBombCount)
+    {
+        if (bombCountText)
+        {
+            bombCountText.text = $"x{newBombCount}";
+            bombButton.interactable = (newBombCount > 0);
+        }
+    }
+
+    public void UpdateCriticalUI(int newCriticalCount)
+    {
+        if (criticalCountText)
+        {
+            criticalCountText.text = $"x{newCriticalCount}";
+            criticalButton.interactable = (newCriticalCount > 0);
+        }
     }
 
     public void ShowNotificationsWithTimer(float duration, string text)
     {
         StartCoroutine(Notification(duration,text));
     }
-    
-    public void UpdateBombUI(int newBombCount)
-    {
-        bombCountText.text = $"x{newBombCount}";
-        bombButton.interactable = (newBombCount > 0);
-    }
-    
-    public void UpdateCriticalUI(int newCriticalCount)
-    {
-        criticalCountText.text = $"x{newCriticalCount}";
-        criticalButton.interactable = (newCriticalCount > 0);
-    }
-
-
 
     private IEnumerator Notification(float duration, string text)
     {
-        Notifications.gameObject.SetActive(true);
-        Notifications.GetComponentInChildren<TextMeshProUGUI>().text = text;
-        yield return new WaitForSeconds(duration);
-        Notifications.gameObject.SetActive(false);
-    }
+        if (Notifications != null)
+        {
+            Notifications.SetActive(true);
+            TextMeshProUGUI notifText = Notifications.GetComponentInChildren<TextMeshProUGUI>();
+            if (notifText != null) notifText.text = text;
 
-    public void SpawnHitParticles()
-    {
-        piniataHitParticleInstance = Instantiate(
-            hitParticleSystem,
-            piniataOnCooldownObj.transform.position,
-            Quaternion.identity
-        );
-    }
-    
-    private void HandleCooldownOverlay(bool isActive, float cdDuration)
-    {
-        if (isActive)
-        {
-            piniataOnCooldownObj.SetActive(true);
-            StartCoroutine(ShowCooldownCountdown(cdDuration));
-        }
-        else
-        {
-            piniataOnCooldownObj.SetActive(false);
-        }
-    }
+            yield return new WaitForSeconds(duration);
 
-    private IEnumerator ShowCooldownCountdown(float cdDuration)
-    {
-        TextMeshProUGUI cooldownText = piniataOnCooldownObj.GetComponentInChildren<TextMeshProUGUI>();
-        float remain = cdDuration;
-        while (remain > 0f)
-        {
-            remain -= Time.deltaTime;
-            cooldownText.text = Mathf.Ceil(remain).ToString();
-            yield return null;
+            Notifications.SetActive(false);
         }
-        piniataOnCooldownObj.SetActive(false);
     }
 }

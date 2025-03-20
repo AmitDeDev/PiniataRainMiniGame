@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4532957243376036210}
   - component: {fileID: 7592105654739077939}
   m_Layer: 0
-  m_Name: PiniataHitParticles
+  m_Name: PiniataHitParticles purple
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
