@@ -2051,7 +2051,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 2e57dc0c340622e40a2b8feeba3d5efc, type: 3}
   - {fileID: 8300000, guid: 4da12420f9bfe5c4d973ea22c3d2c123, type: 3}
   - {fileID: 8300000, guid: fb783cebeea2c6c4999f4c70d3a56a42, type: 3}
-  bombSound: {fileID: 8300000, guid: c64a8535a4335c14b96b99cb9cfe672b, type: 3}
+  bombSound: {fileID: 8300000, guid: 8d26fb3c74caaa046a267f62b3274765, type: 3}
   criticalSound: {fileID: 8300000, guid: bfb92e00fda49714e904b88392d3ca0b, type: 3}
   smashSound: {fileID: 8300000, guid: 8d26fb3c74caaa046a267f62b3274765, type: 3}
 --- !u!82 &2110728242
@@ -2164,7 +2164,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3715624281083384709, guid: c221d3508b7642240983dfa03cdb9212, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5912562129347850742, guid: c221d3508b7642240983dfa03cdb9212, type: 3}
       propertyPath: m_LocalPosition.x

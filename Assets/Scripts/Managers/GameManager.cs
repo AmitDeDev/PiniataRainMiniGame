@@ -186,8 +186,8 @@ public class GameManager : MonoBehaviour
 
         if (destroyedPiniataCount % 15 == 0)
         {
-            gameModel.Timer += 30f;
-            ShowNotification("+30s bonus time!", 2f);
+            gameModel.Timer += 15f;
+            ShowNotification("+15s bonus time!", 2f);
         }
 
         piniatasOpenedSinceLastBomb++;
@@ -197,6 +197,9 @@ public class GameManager : MonoBehaviour
         TryGrantCritical();
 
         RemovePiniata(ctrl, true);
+        
+        audioManager?.PlayPiniataSmashSound();
+
     }
 
     public void RemovePiniata(PiniataController ctrl, bool destroyedByUser)
@@ -261,10 +264,10 @@ public class GameManager : MonoBehaviour
         activePiniatas.Clear();
 
         // If we actually destroyed piñatas => single smash sound
-        if (anyDestroyed)
+        /*if (anyDestroyed)
         {
             audioManager?.PlayPiniataSmashSound();
-        }
+        }*/
 
         OnScoreUpdated?.Invoke(gameModel.Score);
         gameView.UpdateScore(gameModel.Score);
