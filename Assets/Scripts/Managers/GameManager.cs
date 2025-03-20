@@ -7,39 +7,40 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [Header("References")]
+    [Header("References (UI, Prefabs)")]
     [SerializeField] private GameView gameView;
     [SerializeField] private GameObject piniataPrefab;
     [SerializeField] private Transform piniataSpawnPoint;
     [SerializeField] private Transform piniataDestroyPoint;
 
-    [Header("Variants: matching Piniata sprites + hit-particle systems")]
+    [Header("Piniata Variants (Sprite + Hit Particle)")]
     [SerializeField] private PiniataVariant[] piniataVariants;
 
-    [Header("Piñata Rain Settings")]
-    [Tooltip("Time range between each spawn (seconds)")]
+    [Header("Spawn Intervals (Seconds)")]
     [SerializeField] private float spawnIntervalMin = 1f;
     [SerializeField] private float spawnIntervalMax = 2f;
 
-    [Tooltip("Initial gravity scale for piñatas (so you can tweak slow vs. fast)")]
+    [Header("Gravity Settings")]
     [SerializeField] private float globalGravityScale = 0.5f;
-
-    [Tooltip("Each 30s we add this to gravityScale => faster falling")]
     [SerializeField] private float speedIncreaseAmount = 0.5f;
-
     private float nextSpeedIncreaseTime = 30f;
 
     [Header("Piñata Smash Particle")]
-    [Tooltip("Particle system to spawn whenever a piñata is fully destroyed by user (click or bomb).")]
     [SerializeField] private ParticleSystem piniataSmashParticle;
+
+    [Header("Audio & Screen Shake")]
+    [SerializeField] private AudioManager audioManager; // MUST reference the new AudioManager
+    [SerializeField] private ScreenShake screenShake;
+    [SerializeField] private float bombShakeIntensity = 0.4f;
+    [SerializeField] private float bombShakeDuration = 0.5f;
+    [SerializeField] private float criticalShakeIntensity = 0.3f;
+    [SerializeField] private float criticalShakeDuration = 0.4f;
 
     private List<PiniataController> activePiniatas = new List<PiniataController>();
     private GameModel gameModel;
-
     private int destroyedPiniataCount;
 
-    #region Bomb/Critical logic
-
+    // Bomb / Critical logic
     private int piniatasOpenedSinceLastBomb;
     private const int minPiniatasBeforeBombChance = 3;
     private const float BombGrantChance = 0.2f;
@@ -48,13 +49,9 @@ public class GameManager : MonoBehaviour
     private const int MinPiniatasBeforeCriticalChance = 5;
     private const float CriticalGrantChance = 0.3f;
 
-    #endregion
-
-    #region Events
     public event Action<int> OnScoreUpdated;
     public event Action<int> OnBombCountUpdated;
     public event Action<int> OnCriticalCountUpdated;
-    #endregion
 
     private void Awake()
     {
@@ -71,7 +68,7 @@ public class GameManager : MonoBehaviour
         gameView.UpdateTimer(gameModel.Timer);
         gameView.UpdateBombUI(gameModel.BombCount);
         gameView.UpdateCriticalUI(gameModel.CriticalCount);
-        gameView.UpdatePiniatasDestroyed(destroyedPiniataCount); // 0 at start
+        gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
 
         StartCoroutine(SpawnPiniatasRoutine());
     }
@@ -96,7 +93,7 @@ public class GameManager : MonoBehaviour
     {
         if (!piniataSpawnPoint || !piniataDestroyPoint)
         {
-            Debug.LogWarning("Spawn or Destroy point not assigned!");
+            Debug.LogWarning("Spawn/Destroy points not assigned!");
             return;
         }
 
@@ -109,50 +106,45 @@ public class GameManager : MonoBehaviour
 
         GameObject piObj = Instantiate(piniataPrefab, spawnPos, Quaternion.identity);
 
-        // Random flip X
         var sr = piObj.GetComponent<SpriteRenderer>();
         if (sr != null)
         {
             sr.flipX = (UnityEngine.Random.value > 0.5f);
         }
 
-        // If we have variant arrays => random color + particle
         if (piniataVariants != null && piniataVariants.Length > 0)
         {
             int idx = UnityEngine.Random.Range(0, piniataVariants.Length);
             var chosen = piniataVariants[idx];
-            if (sr != null && chosen.piniataSprite)
+            if (sr && chosen.piniataSprite)
             {
                 sr.sprite = chosen.piniataSprite;
             }
             var ctrlVar = piObj.GetComponent<PiniataController>();
-            if (ctrlVar != null && chosen.hitParticle)
+            if (ctrlVar && chosen.hitParticle)
             {
                 ctrlVar.hitParticlePrefab = chosen.hitParticle;
             }
         }
 
-        // Piñata requires random clicks
         int required = UnityEngine.Random.Range(1, 31);
-
         var controller = piObj.GetComponent<PiniataController>();
         if (controller != null)
         {
             controller.Initialize(this, required, piniataDestroyPoint);
 
-            // Switch to dynamic so it falls with gravity
             var rb = piObj.GetComponent<Rigidbody2D>();
             if (rb)
             {
                 rb.bodyType = RigidbodyType2D.Dynamic;
-                rb.gravityScale = globalGravityScale; // set initial fall speed
+                rb.gravityScale = globalGravityScale;
             }
 
             activePiniatas.Add(controller);
         }
         else
         {
-            Debug.LogError("No PiniataController found on the prefab!");
+            Debug.LogError("No PiniataController on prefab!");
         }
     }
 
@@ -168,8 +160,10 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < actualClickIncrement; i++)
         {
+            // 1) Random piñata click SFX
+            audioManager?.PlayPiniataClickSound();
+
             bool isOpened = ctrl.HandleClick();
-            // Spawn hit effect + bounce
             ctrl.SpawnHitParticle();
             ctrl.BouncePiniata();
 
@@ -183,16 +177,13 @@ public class GameManager : MonoBehaviour
 
     private void PiniataFullyOpened(PiniataController ctrl)
     {
-        // Score
         gameModel.Score += ctrl.RequiredClicks;
         OnScoreUpdated?.Invoke(gameModel.Score);
         gameView.UpdateScore(gameModel.Score);
 
-        // Count destroyed
         destroyedPiniataCount++;
         gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
 
-        // 30s each 15 destroyed
         if (destroyedPiniataCount % 15 == 0)
         {
             gameModel.Timer += 30f;
@@ -205,33 +196,28 @@ public class GameManager : MonoBehaviour
         TryGrantBomb();
         TryGrantCritical();
 
-        // We remove the piñata and pass "true" => destroyed by user => show smash
         RemovePiniata(ctrl, true);
     }
 
-    public void RemovePiniata(PiniataController ctrl, bool addScore)
+    public void RemovePiniata(PiniataController ctrl, bool destroyedByUser)
     {
         if (activePiniatas.Contains(ctrl))
         {
             activePiniatas.Remove(ctrl);
         }
-        if (addScore)
+        if (destroyedByUser)
         {
-            // user destroyed => spawn smash particle at that piñata's position
+            // Smash particle
             if (piniataSmashParticle != null)
             {
                 Instantiate(piniataSmashParticle, ctrl.transform.position, Quaternion.identity);
             }
-
-            // optional leftover score
-            gameModel.Score += ctrl.RequiredClicks;
-            OnScoreUpdated?.Invoke(gameModel.Score);
-            gameView.UpdateScore(gameModel.Score);
+            // If exactly one piñata is destroyed => we can play smash sound
+            // But if multiple are destroyed, we handle it after the loop
+            // So we won't do it here for mass-destructions
         }
         Destroy(ctrl.gameObject);
     }
-
-    #region Bomb Logic
 
     private void TryGrantBomb()
     {
@@ -252,30 +238,37 @@ public class GameManager : MonoBehaviour
     {
         if (gameModel.BombCount <= 0) return;
 
+        // 1) Bomb SFX
+        audioManager?.PlayBombSound();
+        // 2) Screen Shake
+        screenShake?.Shake(bombShakeIntensity, bombShakeDuration);
+
         gameModel.BombCount--;
         OnBombCountUpdated?.Invoke(gameModel.BombCount);
 
-        // For each piñata => user destroyed => spawn smash particle
+        // If multiple piñatas => spawn smash for each
+        bool anyDestroyed = (activePiniatas.Count > 0);
+
         foreach (var ctrl in activePiniatas)
         {
-            // spawn smash
             if (piniataSmashParticle != null)
             {
                 Instantiate(piniataSmashParticle, ctrl.transform.position, Quaternion.identity);
             }
-
             gameModel.Score += ctrl.RequiredClicks;
             Destroy(ctrl.gameObject);
         }
         activePiniatas.Clear();
 
+        // If we actually destroyed piñatas => single smash sound
+        if (anyDestroyed)
+        {
+            audioManager?.PlayPiniataSmashSound();
+        }
+
         OnScoreUpdated?.Invoke(gameModel.Score);
         gameView.UpdateScore(gameModel.Score);
     }
-
-    #endregion
-
-    #region Critical Logic
 
     private void TryGrantCritical()
     {
@@ -296,6 +289,11 @@ public class GameManager : MonoBehaviour
     {
         if (gameModel.CriticalCount <= 0) return;
 
+        // 1) Critical SFX
+        audioManager?.PlayCriticalSound();
+        // 2) Screen Shake
+        screenShake?.Shake(criticalShakeIntensity, criticalShakeDuration);
+
         gameModel.CriticalCount--;
         OnCriticalCountUpdated?.Invoke(gameModel.CriticalCount);
 
@@ -313,7 +311,6 @@ public class GameManager : MonoBehaviour
                 {
                     Instantiate(piniataSmashParticle, ctrl.transform.position, Quaternion.identity);
                 }
-
                 gameModel.Score += ctrl.RequiredClicks + randomX;
                 toRemove.Add(ctrl);
             }
@@ -323,21 +320,23 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        bool destroyedMultiple = (toRemove.Count > 0);
+
         foreach (var c in toRemove)
         {
             activePiniatas.Remove(c);
             Destroy(c.gameObject);
         }
 
+        // If multiple piñatas destroyed => single smash sound
+        if (destroyedMultiple)
+        {
+            audioManager?.PlayPiniataSmashSound();
+        }
+
         gameView.UpdateScore(gameModel.Score);
         OnScoreUpdated?.Invoke(gameModel.Score);
     }
-
-    #endregion
-
-    #region Speed Increase / Timer
-
-    private float nextSpeedCheck;
 
     private void UpdateTimer(float deltaTime)
     {
@@ -355,7 +354,6 @@ public class GameManager : MonoBehaviour
 
                 ShowNotification($"Piniatas are now falling faster! (gravity={globalGravityScale})", 2f);
 
-                // Update existing piñatas
                 foreach (var ctrl in activePiniatas)
                 {
                     var rb = ctrl.GetComponent<Rigidbody2D>();
@@ -372,10 +370,6 @@ public class GameManager : MonoBehaviour
             gameView.UpdateTimer(gameModel.Timer);
         }
     }
-
-    #endregion
-
-    // Removed all cooldown references
 
     public void ShowNotification(string message, float duration)
     {
