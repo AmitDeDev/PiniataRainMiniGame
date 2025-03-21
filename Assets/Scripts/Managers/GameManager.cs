@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject piniataPrefab;
     [SerializeField] private Transform piniataSpawnPoint;
     [SerializeField] private Transform piniataDestroyPoint;
+    [SerializeField] private ScreenShake cameraShake;
 
     [Header("Piniata Variants (Sprite + Hit Particle)")]
     [SerializeField] private PiniataVariant[] piniataVariants;
@@ -414,6 +415,7 @@ public class GameManager : MonoBehaviour
 
         OnBombCountUpdated?.Invoke(gameModel.BombCount);
         audioManager?.PlayBombSound();
+        cameraShake.Shake(0.2f,0.3f);
 
         // bomb kills all piñatas => user destroyed => 
         // but if a piñata is golden or black => apply special effect
@@ -481,6 +483,7 @@ public class GameManager : MonoBehaviour
 
         OnCriticalCountUpdated?.Invoke(gameModel.CriticalCount);
         audioManager?.PlayCriticalSound();
+        cameraShake.Shake(0.2f,0.3f);
 
         int randomX = UnityEngine.Random.Range(1, 10);
         gameView.ShowNotificationsWithTimer($"All Piniatas reduced by {randomX} clicks!", 3f);

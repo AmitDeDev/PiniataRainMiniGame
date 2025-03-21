@@ -424,6 +424,7 @@ MonoBehaviour:
   piniataPrefab: {fileID: 4014458172193793425, guid: 40944b3a351eb3748844d7abde583c03, type: 3}
   piniataSpawnPoint: {fileID: 1087586653}
   piniataDestroyPoint: {fileID: 435419809}
+  cameraShake: {fileID: 519420033}
   piniataVariants:
   - piniataSprite: {fileID: 21300000, guid: f5f9beae151374249bdbb68d01990060, type: 3}
     hitParticle: {fileID: 4532957243376036210, guid: 423fc30ea1cbf9e4aae359e5c2b45109, type: 3}
@@ -442,7 +443,7 @@ MonoBehaviour:
   globalGravityScale: 0.3
   speedIncreaseAmount: 0.2
   piniataSmashParticle: {fileID: 4532957243376036210, guid: cf8c64d73dd95754081adcaf40bc1846, type: 3}
-  blackPiniataGameOverDelay: 1
+  GameOverPopupDelay: 1
   multiplierDuration: 30
   audioManager: {fileID: 3017921095671902586}
   sceneLoader: {fileID: 5079078761485032211}
