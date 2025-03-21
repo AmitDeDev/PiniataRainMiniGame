@@ -25,7 +25,7 @@ public class PiniataController : MonoBehaviour
 
     [Header("Bounce Settings")]
     [Tooltip("How strong the upward force is when user clicks")]
-    [SerializeField] private float bounceForce = 3f; 
+    [SerializeField] private float bounceForce = 3f;
 
     public void Initialize(GameManager manager, int required, Transform _destroyPoint)
     {
@@ -34,13 +34,11 @@ public class PiniataController : MonoBehaviour
         model = new PiniataModel(required);
 
         rb2d = GetComponent<Rigidbody2D>();
-        // We'll let GameManager set our gravityScale (so we fall at the global speed).
         UpdateClicksText();
     }
 
     private void Update()
     {
-        // If below destroy point => remove
         if (destroyPoint && transform.position.y < destroyPoint.position.y)
         {
             gameManager.RemovePiniata(this, false);
@@ -55,9 +53,6 @@ public class PiniataController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Increment clicks, returns true if opened
-    /// </summary>
     public bool HandleClick()
     {
         model.CurrentClicks++;
@@ -83,39 +78,34 @@ public class PiniataController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Briefly squish and apply upward force so it bounces up 
-    /// then comes down again under gravity
-    /// </summary>
     public void BouncePiniata()
     {
-        // 1) kill old tween 
         if (activeSquishTween != null && activeSquishTween.IsActive())
         {
             activeSquishTween.Kill();
         }
 
-        // 2) Squish
         Vector3 originalScale = transform.localScale;
-        activeSquishTween = transform.DOScale(originalScale * 0.8f, 0.1f).OnComplete(() =>
-        {
-            transform.DOScale(originalScale, 0.1f).SetEase(Ease.OutBack);
-        });
+        activeSquishTween = transform.DOScale(originalScale * 0.8f, 0.1f)
+            .OnComplete(() =>
+            {
+                transform.DOScale(originalScale, 0.1f).SetEase(Ease.OutBack);
+            });
 
-        // 3) Upward force
-        if (rb2d != null)
+        if (rb2d)
         {
-            // Cancel downward velocity so the bounce is noticeable
             rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
-
-            // Add upward impulse
             rb2d.AddForce(new Vector2(0, bounceForce), ForceMode2D.Impulse);
         }
     }
 
     private void OnDestroy()
     {
-        // Kill leftover DOTween so no "target destroyed" errors
+        if (activeSquishTween != null && activeSquishTween.IsActive())
+        {
+            activeSquishTween.Kill();
+        }
+
         DOTween.Kill(transform);
     }
 }

@@ -9,16 +9,25 @@ public class MainMenuView : MonoBehaviour
     [SerializeField] private Button playGameButton;
     [SerializeField] private Button gameRulesButton;
     [SerializeField] private Button bestScoreButton;
-    
-    
+
     public void Init(MainMenuManager manager)
     {
-        playGameButton.AddSquishEffect(0.8f,0.1f);
-
-        gameRulesButton.AddSquishEffect(0.8f, 0.1f);
-        gameRulesButton.onClick.AddListener(() => manager.OnGameRulesButtonClicked());
+        if (playGameButton)
+        {
+            playGameButton.AddSquishEffect(0.8f, 0.1f);
+            playGameButton.onClick.AddListener(() => manager.OnPlayGameClicked());
+        }
         
-        bestScoreButton.AddSquishEffect(0.8f, 0.1f);
-        bestScoreButton.onClick.AddListener(() => manager.OnBestScoreButtonClicked());
+        if (gameRulesButton)
+        {
+            gameRulesButton.AddSquishEffect(0.8f, 0.1f);
+            gameRulesButton.onClick.AddListener(() => manager.OnGameRulesButtonClicked());
+        }
+        
+        if (bestScoreButton)
+        {
+            bestScoreButton.AddSquishEffect(0.8f, 0.1f);
+            bestScoreButton.onClick.AddListener(() => manager.OnBestScoreButtonClicked());
+        }
     }
 }

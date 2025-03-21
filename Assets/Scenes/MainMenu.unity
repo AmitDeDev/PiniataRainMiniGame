@@ -2917,9 +2917,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainMenuView: {fileID: 774472623}
+  sceneLoader: {fileID: 5079078761485032211}
   audioManager: {fileID: 1407214715}
   gameRulesPopup: {fileID: 1604669320}
   bestScorePopup: {fileID: 1296807429}
+  bestScoreText: {fileID: 1058993647}
+  bestDestroyedText: {fileID: 299301998}
+  bestBombUsedText: {fileID: 1707959253}
+  bestCriticalUsedText: {fileID: 425519594}
 --- !u!4 &1196918872
 Transform:
   m_ObjectHideFlags: 0

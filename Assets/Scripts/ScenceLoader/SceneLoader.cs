@@ -24,6 +24,13 @@ public class SceneLoader : MonoBehaviour
 
         StartCoroutine(LoadScene(0));
     }
+    
+    public void ReactivateCurrentScene()
+    {
+        int activeSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        
+        StartCoroutine(LoadScene(activeSceneIndex));
+    }
 
     IEnumerator LoadScene(int _sceneIndex)
     {

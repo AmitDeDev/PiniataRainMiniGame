@@ -2,12 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [Header("References (UI, Prefabs)")]
+    [Header("General References")]
     [SerializeField] private GameView gameView;
     [SerializeField] private GameObject piniataPrefab;
     [SerializeField] private Transform piniataSpawnPoint;
@@ -16,42 +18,65 @@ public class GameManager : MonoBehaviour
     [Header("Piniata Variants (Sprite + Hit Particle)")]
     [SerializeField] private PiniataVariant[] piniataVariants;
 
-    [Header("Spawn Intervals (Seconds)")]
+    [Header("Special Piniatas")]
+    [Tooltip("Golden Piniata Prefab")]
+    [SerializeField] private GameObject goldenPiniataPrefab;
+    [Tooltip("Black Piniata Prefab")]
+    [SerializeField] private GameObject blackPiniataPrefab;
+
+    [Header("Spawn Intervals")]
     [SerializeField] private float spawnIntervalMin = 1f;
     [SerializeField] private float spawnIntervalMax = 2f;
+
+    [Header("Golden / Black Timers")]
+    [Tooltip("Spawn a golden piniata once a minute (or random in a 60s window).")]
+    [SerializeField] private float goldenSpawnDelay = 60f;
+    [Tooltip("Spawn black piniata once every  seconds.")]
+    [SerializeField] private float blackSpawnDelay = 45f;
 
     [Header("Gravity Settings")]
     [SerializeField] private float globalGravityScale = 0.5f;
     [SerializeField] private float speedIncreaseAmount = 0.5f;
     private float nextSpeedIncreaseTime = 30f;
 
-    [Header("Piñata Smash Particle")]
+    [Header("Piniata Smash Particle")]
     [SerializeField] private ParticleSystem piniataSmashParticle;
+    
+    [Header("Popups / Flow")]
+    [SerializeField] private float GameOverPopupDelay = 1f;
+    [SerializeField] private float multiplierDuration = 15f;
 
-    [Header("Audio & Screen Shake")]
-    [SerializeField] private AudioManager audioManager; // MUST reference the new AudioManager
-    [SerializeField] private ScreenShake screenShake;
-    [SerializeField] private float bombShakeIntensity = 0.4f;
-    [SerializeField] private float bombShakeDuration = 0.5f;
-    [SerializeField] private float criticalShakeIntensity = 0.3f;
-    [SerializeField] private float criticalShakeDuration = 0.4f;
+    [Header("Audio")] 
+    [SerializeField] private AudioManager audioManager;
+
+    [Header("Scene Manager")] 
+    [SerializeField] private SceneLoader sceneLoader;
+    
+    #region Score multiplier logic
+    private bool goldenMultiplierActive;
+    private float goldenTimerLeft;
+    private float goldenMultiplierValue = 1f;
+    #endregion
 
     private List<PiniataController> activePiniatas = new List<PiniataController>();
     private GameModel gameModel;
     private int destroyedPiniataCount;
 
-    // Bomb / Critical logic
+    private bool isGameOver;
+
+    #region Bomb / Critical thresholds
     private int piniatasOpenedSinceLastBomb;
-    private const int minPiniatasBeforeBombChance = 3;
-    private const float BombGrantChance = 0.2f;
-
     private int piniatasOpenedSinceLastCritical;
-    private const int MinPiniatasBeforeCriticalChance = 5;
-    private const float CriticalGrantChance = 0.3f;
+    
+    private int bombsUsedInSession;
+    private int criticalUsedInSession;
+    #endregion
 
+    #region Events
     public event Action<int> OnScoreUpdated;
     public event Action<int> OnBombCountUpdated;
     public event Action<int> OnCriticalCountUpdated;
+    #endregion
 
     private void Awake()
     {
@@ -62,40 +87,73 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         gameModel = new GameModel { Timer = 120f };
-
         gameView.Init(this);
+
         gameView.UpdateScore(gameModel.Score);
         gameView.UpdateTimer(gameModel.Timer);
         gameView.UpdateBombUI(gameModel.BombCount);
         gameView.UpdateCriticalUI(gameModel.CriticalCount);
         gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
 
+        goldenMultiplierValue = 1f;
+        goldenTimerLeft = 0f;
+
         StartCoroutine(SpawnPiniatasRoutine());
+        StartCoroutine(SpawnGoldenPiniataRoutine());
+        StartCoroutine(SpawnBlackPiniataRoutine());
     }
 
     private void Update()
     {
+        if (isGameOver) return;
         UpdateTimer(Time.deltaTime);
+        UpdateGoldenMultiplier(Time.deltaTime);
     }
+
+    //====================
+    //  SPAWN ROUTINES
+    //====================
 
     private IEnumerator SpawnPiniatasRoutine()
     {
-        while (gameModel.Timer > 0)
+        while (gameModel.Timer > 0 && !isGameOver)
         {
             float waitTime = UnityEngine.Random.Range(spawnIntervalMin, spawnIntervalMax);
             yield return new WaitForSeconds(waitTime);
 
+            if (isGameOver) yield break;
             SpawnFallingPiniata();
+        }
+    }
+
+    private IEnumerator SpawnGoldenPiniataRoutine()
+    {
+        yield return new WaitForSeconds(UnityEngine.Random.Range(30f, goldenSpawnDelay));
+        if (!isGameOver && gameModel.Timer > 0)
+        {
+            SpawnSpecialPiniata(goldenPiniataPrefab);
+        }
+
+        yield return new WaitForSeconds(goldenSpawnDelay);
+        if (!isGameOver && gameModel.Timer > 0)
+        {
+            SpawnSpecialPiniata(goldenPiniataPrefab);
+        }
+    }
+
+    private IEnumerator SpawnBlackPiniataRoutine()
+    {
+        while (!isGameOver && gameModel.Timer > 0)
+        {
+            yield return new WaitForSeconds(blackSpawnDelay);
+            if (isGameOver || gameModel.Timer <= 0) yield break;
+            SpawnSpecialPiniata(blackPiniataPrefab);
         }
     }
 
     private void SpawnFallingPiniata()
     {
-        if (!piniataSpawnPoint || !piniataDestroyPoint)
-        {
-            Debug.LogWarning("Spawn/Destroy points not assigned");
-            return;
-        }
+        if (!piniataSpawnPoint || !piniataDestroyPoint) return;
 
         float randomX = UnityEngine.Random.Range(-2f, 2f);
         Vector3 spawnPos = new Vector3(
@@ -103,20 +161,16 @@ public class GameManager : MonoBehaviour
             piniataSpawnPoint.position.y,
             0f
         );
-
         GameObject piObj = Instantiate(piniataPrefab, spawnPos, Quaternion.identity);
 
         var sr = piObj.GetComponent<SpriteRenderer>();
-        if (sr != null)
-        {
-            sr.flipX = (UnityEngine.Random.value > 0.5f);
-        }
+        if (sr) sr.flipX = (UnityEngine.Random.value > 0.5f);
 
         if (piniataVariants != null && piniataVariants.Length > 0)
         {
             int idx = UnityEngine.Random.Range(0, piniataVariants.Length);
             var chosen = piniataVariants[idx];
-            if (sr && chosen.piniataSprite)
+            if (chosen.piniataSprite && sr)
             {
                 sr.sprite = chosen.piniataSprite;
             }
@@ -132,74 +186,132 @@ public class GameManager : MonoBehaviour
         if (controller != null)
         {
             controller.Initialize(this, required, piniataDestroyPoint);
-
             var rb = piObj.GetComponent<Rigidbody2D>();
             if (rb)
             {
                 rb.bodyType = RigidbodyType2D.Dynamic;
                 rb.gravityScale = globalGravityScale;
             }
-
             activePiniatas.Add(controller);
-        }
-        else
-        {
-            Debug.LogError("No PiniataController on prefab");
         }
     }
 
+    private void SpawnSpecialPiniata(GameObject specialPrefab)
+    {
+        if (!piniataSpawnPoint || !piniataDestroyPoint || !specialPrefab) return;
+
+        float randomX = UnityEngine.Random.Range(-2f, 2f);
+        Vector3 spawnPos = new Vector3(
+            piniataSpawnPoint.position.x + randomX,
+            piniataSpawnPoint.position.y,
+            0f
+        );
+        GameObject piObj = Instantiate(specialPrefab, spawnPos, Quaternion.identity);
+
+        int required = 0;
+        string lowerName = piObj.name.ToLower();
+        if (lowerName.Contains("gold"))
+        {
+            required = UnityEngine.Random.Range(5, 21);
+        }
+        else if (lowerName.Contains("black"))
+        {
+            required = UnityEngine.Random.Range(1, 3);
+        }
+
+        var controller = piObj.GetComponent<PiniataController>();
+        if (controller != null)
+        {
+            controller.Initialize(this, required, piniataDestroyPoint);
+            var rb = piObj.GetComponent<Rigidbody2D>();
+            if (rb)
+            {
+                rb.bodyType = RigidbodyType2D.Dynamic;
+                rb.gravityScale = globalGravityScale;
+            }
+            activePiniatas.Add(controller);
+        }
+    }
+
+    //====================
+    //  PIÑATA CLICK
+    //====================
+
     public void OnPiniataClicked(PiniataController ctrl)
     {
+        if (isGameOver) return;
+
         int actualClickIncrement = 1;
         if (gameModel.NextCriticalValue > 0)
         {
             actualClickIncrement += gameModel.NextCriticalValue;
             gameModel.NextCriticalValue = 0;
-            ShowNotification($"Critical hit added {actualClickIncrement - 1} extra clicks!", 3f);
         }
 
         for (int i = 0; i < actualClickIncrement; i++)
         {
-            // 1) Random piñata click SFX
             audioManager?.PlayPiniataClickSound();
-
             bool isOpened = ctrl.HandleClick();
             ctrl.SpawnHitParticle();
             ctrl.BouncePiniata();
 
             if (isOpened)
             {
-                PiniataFullyOpened(ctrl);
+                HandleSpecialPiniata(ctrl);
                 break;
             }
         }
     }
 
+    private void HandleSpecialPiniata(PiniataController ctrl)
+    {
+        string lowerName = ctrl.gameObject.name.ToLower();
+        if (lowerName.Contains("gold"))
+        {
+            goldenMultiplierActive = true;
+            goldenTimerLeft = multiplierDuration;
+            goldenMultiplierValue = 2f;
+            gameView.ShowNotificationsWithTimer("Golden Piniata! Score x2 for 15s!", 3f);
+
+            RemovePiniata(ctrl, false);
+        }
+        else if (lowerName.Contains("black"))
+        {
+            gameModel.Timer = 0; 
+            RemovePiniata(ctrl, false);
+            StartCoroutine(WaitAndGameOver(GameOverPopupDelay));
+        }
+        else
+        {
+            PiniataFullyOpened(ctrl);
+        }
+    }
+
     private void PiniataFullyOpened(PiniataController ctrl)
     {
-        gameModel.Score += ctrl.RequiredClicks;
+        int points = (int)(ctrl.RequiredClicks * goldenMultiplierValue);
+        gameModel.Score += points;
+
         OnScoreUpdated?.Invoke(gameModel.Score);
         gameView.UpdateScore(gameModel.Score);
 
         destroyedPiniataCount++;
         gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
+        audioManager?.PlayPiniataSmashSound();
 
+        // +30s each 15 destroyed
         if (destroyedPiniataCount % 15 == 0)
         {
             gameModel.Timer += 15f;
-            ShowNotification("+15s bonus time!", 3f);
+            gameView.ShowNotificationsWithTimer("+15s bonus time!", 3f);
         }
 
         piniatasOpenedSinceLastBomb++;
         piniatasOpenedSinceLastCritical++;
-
         TryGrantBomb();
         TryGrantCritical();
 
         RemovePiniata(ctrl, true);
-        
-        audioManager?.PlayPiniataSmashSound();
-
     }
 
     public void RemovePiniata(PiniataController ctrl, bool destroyedByUser)
@@ -208,30 +320,85 @@ public class GameManager : MonoBehaviour
         {
             activePiniatas.Remove(ctrl);
         }
-        if (destroyedByUser)
+        if (destroyedByUser && piniataSmashParticle != null)
         {
-            // Smash particle
-            if (piniataSmashParticle != null)
-            {
-                Instantiate(piniataSmashParticle, ctrl.transform.position, Quaternion.identity);
-            }
-            // If exactly one piñata is destroyed => we can play smash sound
-            // But if multiple are destroyed, we handle it after the loop
-            // So we won't do it here for mass-destructions
+            Instantiate(piniataSmashParticle, ctrl.transform.position, Quaternion.identity);
         }
         Destroy(ctrl.gameObject);
     }
 
+    //====================
+    //  GOLDEN MULTIPLIER
+    //====================
+
+    private void UpdateGoldenMultiplier(float deltaTime)
+    {
+        if (!goldenMultiplierActive) return;
+        if (goldenTimerLeft > 0)
+        {
+            goldenTimerLeft -= deltaTime;
+            if (goldenTimerLeft <= 0)
+            {
+                goldenMultiplierActive = false;
+                goldenMultiplierValue = 1f;
+                gameView.ShowNotificationsWithTimer("Golden Multiplier ended!", 3f);
+            }
+        }
+    }
+
+    //====================
+    //  BLACK => GAMEOVER
+    //====================
+
+    private IEnumerator WaitAndGameOver(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        TriggerGameOver();
+    }
+
+    private void TriggerGameOver()
+    {
+        if (isGameOver) return;
+        isGameOver = true;
+
+        // remove all piñatas
+        foreach (var ctrl in activePiniatas)
+        {
+            Destroy(ctrl.gameObject);
+        }
+        activePiniatas.Clear();
+
+        // update best stats
+        MainMenuManager.TryUpdateBestStats(
+            gameModel.Score, 
+            destroyedPiniataCount,
+            bombsUsedInSession,
+            criticalUsedInSession
+        );
+
+        // show game over popup
+        gameView.ShowGameOverPopup(
+            gameModel.Score,
+            destroyedPiniataCount,
+            bombsUsedInSession,
+            criticalUsedInSession
+        );
+    }
+
+    //====================
+    //  BOMB / CRITICAL
+    //====================
+
     private void TryGrantBomb()
     {
-        if (piniatasOpenedSinceLastBomb >= minPiniatasBeforeBombChance)
+        if (piniatasOpenedSinceLastBomb >= 3)
         {
             float roll = UnityEngine.Random.value;
-            if (roll <= BombGrantChance)
+            if (roll <= 0.2f)
             {
                 gameModel.BombCount++;
                 OnBombCountUpdated?.Invoke(gameModel.BombCount);
-                ShowNotification("You've won a BOMB!", 3f);
+                gameView.ShowNotificationsWithTimer("You've won a BOMB!", 3f);
                 piniatasOpenedSinceLastBomb = 0;
             }
         }
@@ -239,50 +406,66 @@ public class GameManager : MonoBehaviour
 
     public void OnBombButtonClicked()
     {
+        if (isGameOver) return;
         if (gameModel.BombCount <= 0) return;
 
-        // 1) Bomb SFX
-        audioManager?.PlayBombSound();
-        // 2) Screen Shake
-        screenShake?.Shake(bombShakeIntensity, bombShakeDuration);
-
         gameModel.BombCount--;
+        bombsUsedInSession++;
+
         OnBombCountUpdated?.Invoke(gameModel.BombCount);
+        audioManager?.PlayBombSound();
 
-        // If multiple piñatas => spawn smash for each
-        bool anyDestroyed = (activePiniatas.Count > 0);
+        // bomb kills all piñatas => user destroyed => 
+        // but if a piñata is golden or black => apply special effect
+        // then remove from scene
+        List<PiniataController> toRemove = new List<PiniataController>(activePiniatas);
 
-        foreach (var ctrl in activePiniatas)
+        foreach (var ctrl in toRemove)
         {
+            string lowerName = ctrl.gameObject.name.ToLower();
+
+            // Check for golden / black
+            if (lowerName.Contains("gold"))
+            {
+                goldenMultiplierActive = true;
+                goldenTimerLeft = multiplierDuration;
+                goldenMultiplierValue = 2f;
+                gameView.ShowNotificationsWithTimer("Golden Piniata! Score x2 for 15s!", 3f);
+            }
+            else if (lowerName.Contains("black"))
+            {
+                gameModel.Timer = 0;
+                StartCoroutine(WaitAndGameOver(GameOverPopupDelay));
+            }
+            else
+            {
+                gameModel.Score += (int)(ctrl.RequiredClicks * goldenMultiplierValue);
+                destroyedPiniataCount++;
+            }
+            
             if (piniataSmashParticle != null)
             {
                 Instantiate(piniataSmashParticle, ctrl.transform.position, Quaternion.identity);
             }
-            gameModel.Score += ctrl.RequiredClicks;
+            activePiniatas.Remove(ctrl);
             Destroy(ctrl.gameObject);
         }
-        activePiniatas.Clear();
-
-        // If we actually destroyed piñatas => single smash sound
-        /*if (anyDestroyed)
-        {
-            audioManager?.PlayPiniataSmashSound();
-        }*/
 
         OnScoreUpdated?.Invoke(gameModel.Score);
         gameView.UpdateScore(gameModel.Score);
+        gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
     }
 
     private void TryGrantCritical()
     {
-        if (piniatasOpenedSinceLastCritical >= MinPiniatasBeforeCriticalChance)
+        if (piniatasOpenedSinceLastCritical >= 5)
         {
             float roll = UnityEngine.Random.value;
-            if (roll <= CriticalGrantChance)
+            if (roll <= 0.3f)
             {
                 gameModel.CriticalCount++;
                 OnCriticalCountUpdated?.Invoke(gameModel.CriticalCount);
-                ShowNotification("You've won a CRITICAL HIT!", 3f);
+                gameView.ShowNotificationsWithTimer("You've won a CRITICAL HIT!", 3f);
                 piniatasOpenedSinceLastCritical = 0;
             }
         }
@@ -290,32 +473,55 @@ public class GameManager : MonoBehaviour
 
     public void OnCriticalButtonClicked()
     {
+        if (isGameOver) return;
         if (gameModel.CriticalCount <= 0) return;
 
-        // 1) Critical SFX
-        audioManager?.PlayCriticalSound();
-        // 2) Screen Shake
-        screenShake?.Shake(criticalShakeIntensity, criticalShakeDuration);
-
         gameModel.CriticalCount--;
+        criticalUsedInSession++;
+
         OnCriticalCountUpdated?.Invoke(gameModel.CriticalCount);
+        audioManager?.PlayCriticalSound();
 
-        int randomX = UnityEngine.Random.Range(1, 6);
-        ShowNotification($"All Piniatas reduced by {randomX} clicks!", 3f);
+        int randomX = UnityEngine.Random.Range(1, 10);
+        gameView.ShowNotificationsWithTimer($"All Piniatas reduced by {randomX} clicks!", 3f);
 
-        List<PiniataController> toRemove = new List<PiniataController>();
-        foreach (var ctrl in activePiniatas)
+        // We remove piñatas that are now "opened"
+        List<PiniataController> toRemove = new List<PiniataController>(activePiniatas);
+
+        foreach (var ctrl in toRemove)
         {
+            string lowerName = ctrl.gameObject.name.ToLower();
+
+            // reduce clicks
             ctrl.RequiredClicks -= randomX;
+
             if (ctrl.RequiredClicks <= ctrl.CurrentClicks)
             {
-                // spawn smash
+                // if golden => multiplier, if black => immediate game over, else normal
+                if (lowerName.Contains("gold"))
+                {
+                    goldenMultiplierActive = true;
+                    goldenTimerLeft = multiplierDuration;
+                    goldenMultiplierValue = 2f;
+                    gameView.ShowNotificationsWithTimer("Golden Piniata! Score x2 for 15s!", 3f);
+                }
+                else if (lowerName.Contains("black"))
+                {
+                    gameModel.Timer = 0;
+                    StartCoroutine(WaitAndGameOver(GameOverPopupDelay));
+                }
+                else
+                {
+                    gameModel.Score += (int)((ctrl.RequiredClicks + randomX) * goldenMultiplierValue);
+                    destroyedPiniataCount++;
+                }
+                
                 if (piniataSmashParticle != null)
                 {
                     Instantiate(piniataSmashParticle, ctrl.transform.position, Quaternion.identity);
                 }
-                gameModel.Score += ctrl.RequiredClicks + randomX;
-                toRemove.Add(ctrl);
+                activePiniatas.Remove(ctrl);
+                Destroy(ctrl.gameObject);
             }
             else
             {
@@ -323,27 +529,17 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        bool destroyedMultiple = (toRemove.Count > 0);
-
-        foreach (var c in toRemove)
-        {
-            activePiniatas.Remove(c);
-            Destroy(c.gameObject);
-        }
-
-        // If multiple piñatas destroyed => single smash sound
-        if (destroyedMultiple)
-        {
-            audioManager?.PlayPiniataSmashSound();
-        }
-
+        // finalize
         gameView.UpdateScore(gameModel.Score);
         OnScoreUpdated?.Invoke(gameModel.Score);
+        gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
     }
+
+    #region Timer
 
     private void UpdateTimer(float deltaTime)
     {
-        if (gameModel.Timer > 0)
+        if (gameModel.Timer > 0 && !isGameOver)
         {
             gameModel.Timer -= deltaTime;
             gameView.UpdateTimer(gameModel.Timer);
@@ -351,31 +547,92 @@ public class GameManager : MonoBehaviour
             float elapsed = 120f - gameModel.Timer;
             if (elapsed >= nextSpeedIncreaseTime)
             {
-                // Increase gravity => faster falling
                 globalGravityScale += speedIncreaseAmount;
                 nextSpeedIncreaseTime += 30f;
 
-                ShowNotification("Piniatas are now falling faster!", 3f);
+                gameView.ShowNotificationsWithTimer("Piniatas now fall faster!", 3f);
 
                 foreach (var ctrl in activePiniatas)
                 {
                     var rb = ctrl.GetComponent<Rigidbody2D>();
-                    if (rb)
-                    {
-                        rb.gravityScale = globalGravityScale;
-                    }
+                    if (rb) rb.gravityScale = globalGravityScale;
                 }
             }
-        }
-        if (gameModel.Timer <= 0)
-        {
-            gameModel.Timer = 0;
-            gameView.UpdateTimer(gameModel.Timer);
+            if (gameModel.Timer <= 0)
+            {
+                gameModel.Timer = 0;
+                gameView.UpdateTimer(gameModel.Timer);
+                StartCoroutine(WaitAndGameOver(1f));
+            }
         }
     }
 
-    public void ShowNotification(string message, float duration)
+    #endregion
+
+    #region Pause / Resume
+
+    public void OnPauseButtonClicked()
     {
-        gameView.ShowNotificationsWithTimer(duration, message);
+        if (isGameOver) return;
+        Time.timeScale = 0f; 
+        gameView.ShowPausePopup(true);
+
+        // Hide or disable piñatas so they can't be clicked
+        foreach (var ctrl in activePiniatas)
+        {
+            ctrl.gameObject.SetActive(false);
+        }
+
+        audioManager?.PlayPiniataClickSound();
+    }
+
+    public void ResumeGame()
+    {
+        // Re-enable piñatas
+        foreach (var ctrl in activePiniatas)
+        {
+            ctrl.gameObject.SetActive(true);
+        }
+
+        gameView.ShowPausePopup(false);
+        Time.timeScale = 1f;
+        audioManager?.PlayPiniataClickSound();
+    }
+
+    public void BackToMainMenuFromPause()
+    {
+        // Re-enable piñatas (though we're leaving the scene anyway)
+        foreach (var ctrl in activePiniatas)
+        {
+            ctrl.gameObject.SetActive(true);
+        }
+
+        Time.timeScale = 1f;
+        audioManager?.PlayPiniataClickSound();
+        // load main menu
+        sceneLoader.LoadNextScene();
+    }
+
+    #endregion
+
+    public void RestartGame()
+    {
+        // Re-enable piñatas (though we reload scene)
+        foreach (var ctrl in activePiniatas)
+        {
+            ctrl.gameObject.SetActive(true);
+        }
+        Time.timeScale = 1f;
+        sceneLoader.ReactivateCurrentScene(); 
+    }
+
+    public void BackToMainMenuFromGameOver()
+    {
+        foreach (var ctrl in activePiniatas)
+        {
+            ctrl.gameObject.SetActive(true);
+        }
+        Time.timeScale = 1f;
+        sceneLoader.LoadNextScene();
     }
 }
