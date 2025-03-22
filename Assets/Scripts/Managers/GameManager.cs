@@ -81,6 +81,9 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 60;
+        
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
