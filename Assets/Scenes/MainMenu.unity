@@ -2325,15 +2325,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'The goal of the game is to collect as much score as you can from smashing
-    piniatas! Each piniata = the amount of clicks to smash in coins. Ex 5 clicks
-    piniata = 5 score.
-
-    There is a timer that count down 2 minutes, When it reach
-    to 0 it''s A Game OVER!
-
-    Every 15 piniatas smashed = 15s time BONUS!  So
-    Keep smashing it!'
+  m_text: Try to collect as many coins as you can by smashing piniatas! Each piniata
+    has different number which refers to the number of taps requierd to smash it
+    , And the number of coins it contains. There is a timer that count down 2 minutes,
+    When the time is over -> Game OVER! Every 15 piniatas smashed = 15s time BONUS!
+    So Keep smashing it!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 511a5e3512555654da33f4219934f121, type: 2}
   m_sharedMaterial: {fileID: -8556938787052355713, guid: 511a5e3512555654da33f4219934f121, type: 2}
@@ -2396,7 +2392,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -478.339, y: 0, z: -507.0393, w: -469.80878}
+  m_margin: {x: -513.70715, y: -19.894604, z: -518.09186, w: -460.96683}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2542,8 +2538,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Once clicked -> Reduce all the piniatas appears on the screen clicks required
-    by X amount
+  m_text: Once clicked -> Reduce the amount of taps requiered by X to all piniatas
+    that appears on screen
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -2998,7 +2994,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Once opened, All piniatas coins X2 for 15s!
+  m_text: Once smashed, All piniatas coins X2 for 15s!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -4446,7 +4442,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Be carful! Once clicked GAME OVER!
+  m_text: Be carful! Once smashed -> GAME OVER!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -4509,7 +4505,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -159.71184, y: -53.99048, z: -500.80847, w: 0}
+  m_margin: {x: -178.16444, y: -53.99048, z: -413.8178, w: -0.000000106921824}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

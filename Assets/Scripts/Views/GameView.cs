@@ -72,7 +72,7 @@ public class GameView : MonoBehaviour
     public void UpdateScore(int newScore)
     {
         if (scoreText) 
-            scoreText.text = $"Score: {newScore}";
+            scoreText.text = $"Coins: {newScore}";
     }
 
     public void UpdateTimer(float timeLeft)
