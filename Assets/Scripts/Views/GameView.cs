@@ -114,8 +114,7 @@ public class GameView : MonoBehaviour
         if (pausePopup) 
             pausePopup.SetActive(show);
     }
-
-    // Called by GameManager when game over => fill final stats + show popup
+    
     public void ShowGameOverPopup(int finalScore, int finalDestroyed, int finalBombUsed, int finalCritUsed)
     {
         if (gameOverPopup)

@@ -2,8 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -247,7 +246,7 @@ public class GameManager : MonoBehaviour
     {
         if (isGameOver) return;
         
-        vibrate.DefaultVibration();
+        vibrate.MediumVibration();
         
         int actualClickIncrement = 1;
         if (gameModel.NextCriticalValue > 0)
@@ -279,7 +278,7 @@ public class GameManager : MonoBehaviour
             goldenMultiplierActive = true;
             goldenTimerLeft = multiplierDuration;
             goldenMultiplierValue = 2f;
-            gameView.ShowNotificationsWithTimer("Golden Piniata! Score x2 for 15s!", 3f);
+            gameView.ShowNotificationsWithTimer("Golden Piniata! Coins x2 for 15s!", 3f);
 
             RemovePiniata(ctrl, false);
         }
@@ -306,8 +305,7 @@ public class GameManager : MonoBehaviour
         destroyedPiniataCount++;
         gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
         audioManager?.PlayPiniataSmashSound();
-
-        // +30s each 15 destroyed
+        
         if (destroyedPiniataCount % 15 == 0)
         {
             gameModel.Timer += 15f;
@@ -414,17 +412,14 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         if (gameModel.BombCount <= 0) return;
 
-        vibrate.HardVibration();
+        vibrate.DefaultVibration();
         gameModel.BombCount--;
         bombsUsedInSession++;
 
         OnBombCountUpdated?.Invoke(gameModel.BombCount);
         audioManager?.PlayBombSound();
         cameraShake.Shake(0.2f,0.3f);
-
-        // bomb kills all piñatas => user destroyed => 
-        // but if a piñata is golden or black => apply special effect
-        // then remove from scene
+        
         List<PiniataController> toRemove = new List<PiniataController>(activePiniatas);
 
         foreach (var ctrl in toRemove)
@@ -437,7 +432,7 @@ public class GameManager : MonoBehaviour
                 goldenMultiplierActive = true;
                 goldenTimerLeft = multiplierDuration;
                 goldenMultiplierValue = 2f;
-                gameView.ShowNotificationsWithTimer("Golden Piniata! Score x2 for 15s!", 3f);
+                gameView.ShowNotificationsWithTimer("Golden Piniata! Coins x2 for 15s!", 3f);
             }
             else if (lowerName.Contains("black"))
             {
@@ -483,7 +478,7 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         if (gameModel.CriticalCount <= 0) return;
         
-        vibrate.MediumVibration();
+        vibrate.DefaultVibration();
         gameModel.CriticalCount--;
         criticalUsedInSession++;
 
@@ -493,15 +488,13 @@ public class GameManager : MonoBehaviour
 
         int randomX = UnityEngine.Random.Range(1, 10);
         gameView.ShowNotificationsWithTimer($"All Piniatas reduced by {randomX} clicks!", 3f);
-
-        // We remove piñatas that are now "opened"
+        
         List<PiniataController> toRemove = new List<PiniataController>(activePiniatas);
 
         foreach (var ctrl in toRemove)
         {
             string lowerName = ctrl.gameObject.name.ToLower();
-
-            // reduce clicks
+            
             ctrl.RequiredClicks -= randomX;
 
             if (ctrl.RequiredClicks <= ctrl.CurrentClicks)
@@ -512,7 +505,7 @@ public class GameManager : MonoBehaviour
                     goldenMultiplierActive = true;
                     goldenTimerLeft = multiplierDuration;
                     goldenMultiplierValue = 2f;
-                    gameView.ShowNotificationsWithTimer("Golden Piniata! Score x2 for 15s!", 3f);
+                    gameView.ShowNotificationsWithTimer("Golden Piniata! Coins x2 for 15s!", 3f);
                 }
                 else if (lowerName.Contains("black"))
                 {
@@ -537,8 +530,7 @@ public class GameManager : MonoBehaviour
                 ctrl.UpdateClicksText();
             }
         }
-
-        // finalize
+        
         gameView.UpdateScore(gameModel.Score);
         OnScoreUpdated?.Invoke(gameModel.Score);
         gameView.UpdatePiniatasDestroyed(destroyedPiniataCount);
@@ -585,8 +577,7 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         Time.timeScale = 0f; 
         gameView.ShowPausePopup(true);
-
-        // Hide or disable piñatas so they can't be clicked
+        
         foreach (var ctrl in activePiniatas)
         {
             ctrl.gameObject.SetActive(false);
@@ -597,7 +588,6 @@ public class GameManager : MonoBehaviour
 
     public void ResumeGame()
     {
-        // Re-enable piñatas
         foreach (var ctrl in activePiniatas)
         {
             ctrl.gameObject.SetActive(true);
@@ -610,7 +600,6 @@ public class GameManager : MonoBehaviour
 
     public void BackToMainMenuFromPause()
     {
-        // Re-enable piñatas (though we're leaving the scene anyway)
         foreach (var ctrl in activePiniatas)
         {
             ctrl.gameObject.SetActive(true);
@@ -618,7 +607,6 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 1f;
         audioManager?.PlayPiniataClickSound();
-        // load main menu
         sceneLoader.LoadNextScene();
     }
 
@@ -626,7 +614,6 @@ public class GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        // Re-enable piñatas (though we reload scene)
         foreach (var ctrl in activePiniatas)
         {
             ctrl.gameObject.SetActive(true);
