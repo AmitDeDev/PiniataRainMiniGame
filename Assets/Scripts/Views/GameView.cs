@@ -121,7 +121,7 @@ public class GameView : MonoBehaviour
         if (gameOverPopup)
         {
             gameOverPopup.SetActive(true);
-            if (finalScoreText)       finalScoreText.text       = $"Score: {finalScore}";
+            if (finalScoreText)       finalScoreText.text       = $"Coins Collected:  {finalScore}";
             if (finalDestroyedText)   finalDestroyedText.text   = $"Piniatas Destroyed: {finalDestroyed}";
             if (finalBombUsedText)    finalBombUsedText.text    = $"Bomb Used: {finalBombUsed}";
             if (finalCriticalUsedText)finalCriticalUsedText.text= $"Critical HIT Used: {finalCritUsed}";

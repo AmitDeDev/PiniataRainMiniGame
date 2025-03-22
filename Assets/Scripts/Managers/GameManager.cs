@@ -61,6 +61,7 @@ public class GameManager : MonoBehaviour
 
     private List<PiniataController> activePiniatas = new List<PiniataController>();
     private GameModel gameModel;
+    private Vibartions vibrate;
     private int destroyedPiniataCount;
 
     private bool isGameOver;
@@ -90,6 +91,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        vibrate = new Vibartions();
         gameModel = new GameModel { Timer = 120f };
         gameView.Init(this);
 
@@ -244,7 +246,9 @@ public class GameManager : MonoBehaviour
     public void OnPiniataClicked(PiniataController ctrl)
     {
         if (isGameOver) return;
-
+        
+        vibrate.DefaultVibration();
+        
         int actualClickIncrement = 1;
         if (gameModel.NextCriticalValue > 0)
         {
@@ -364,23 +368,20 @@ public class GameManager : MonoBehaviour
     {
         if (isGameOver) return;
         isGameOver = true;
-
-        // remove all piñatas
+        
         foreach (var ctrl in activePiniatas)
         {
             Destroy(ctrl.gameObject);
         }
         activePiniatas.Clear();
-
-        // update best stats
+        
         MainMenuManager.TryUpdateBestStats(
             gameModel.Score, 
             destroyedPiniataCount,
             bombsUsedInSession,
             criticalUsedInSession
         );
-
-        // show game over popup
+        
         gameView.ShowGameOverPopup(
             gameModel.Score,
             destroyedPiniataCount,
@@ -413,6 +414,7 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         if (gameModel.BombCount <= 0) return;
 
+        vibrate.HardVibration();
         gameModel.BombCount--;
         bombsUsedInSession++;
 
@@ -480,7 +482,8 @@ public class GameManager : MonoBehaviour
     {
         if (isGameOver) return;
         if (gameModel.CriticalCount <= 0) return;
-
+        
+        vibrate.MediumVibration();
         gameModel.CriticalCount--;
         criticalUsedInSession++;
 

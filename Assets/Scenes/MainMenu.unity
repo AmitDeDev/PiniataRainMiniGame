@@ -821,7 +821,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -112}
+  m_AnchoredPosition: {x: 0, y: -93}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &390471696
@@ -844,7 +844,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Return to main menu
+  m_text: Play game / Pause / Go to main menu button
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -978,9 +978,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'WELL DONE!!
+  m_text: 'WELL DONE!! You''re really the BEST!
 
-    Let''s dive into Details!'
+    Let''s dive into your best details!'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 511a5e3512555654da33f4219934f121, type: 2}
   m_sharedMaterial: {fileID: -8556938787052355713, guid: 511a5e3512555654da33f4219934f121, type: 2}
@@ -2325,14 +2325,15 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'The goal of the game is to collect as much coins as you can from the piniatas
-    each piniata = the amount of clicks to smash in coins.
+  m_text: 'The goal of the game is to collect as much score as you can from smashing
+    piniatas! Each piniata = the amount of clicks to smash in coins. Ex 5 clicks
+    piniata = 5 score.
 
-    There is a timer
-    that count down 2 minutes, When reach to 0 -> Game OVER
+    There is a timer that count down 2 minutes, When it reach
+    to 0 it''s A Game OVER!
 
-    Every 15 piniatas
-    smashed = +15s time BONUS!'
+    Every 15 piniatas smashed = 15s time BONUS!  So
+    Keep smashing it!'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 511a5e3512555654da33f4219934f121, type: 2}
   m_sharedMaterial: {fileID: -8556938787052355713, guid: 511a5e3512555654da33f4219934f121, type: 2}
@@ -2676,7 +2677,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Best Score: '
+  m_text: 'Best Coin Score: '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -2810,7 +2811,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Once clicked -> Smashes all the piniatas on screen! K'aboooom
+  m_text: Once clicked it's smashes all the piniatas on screen! K'aboooom
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -2974,7 +2975,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 453}
+  m_AnchoredPosition: {x: 0, y: 424}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1251490037
@@ -2997,7 +2998,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Once opened, All piniatas coins X2
+  m_text: Once opened, All piniatas coins X2 for 15s!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -4445,7 +4446,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Once clicked GAME OVER!
+  m_text: Be carful! Once clicked GAME OVER!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}

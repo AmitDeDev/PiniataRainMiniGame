@@ -1131,7 +1131,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Final Score: X'
+  m_text: 'Final Coins Collected: '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
   m_sharedMaterial: {fileID: -8735442134213527326, guid: 84c37835a74abc847b5ea7edce8fe1a8, type: 2}
@@ -1194,7 +1194,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -391.5138, y: 0, z: -391.51385, w: -67.25395}
+  m_margin: {x: -447.22763, y: 0, z: -443.2482, w: -67.25395}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2244,7 +2244,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Score: X'
+  m_text: 'Coins: X'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 511a5e3512555654da33f4219934f121, type: 2}
   m_sharedMaterial: {fileID: -8556938787052355713, guid: 511a5e3512555654da33f4219934f121, type: 2}
@@ -2708,7 +2708,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -329.0637, y: 0, z: -324.25998, w: -67.253815}
+  m_margin: {x: -404.67535, y: 0, z: -387.93295, w: -67.253815}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
