@@ -311,6 +311,9 @@ public class GameManager : MonoBehaviour
             gameModel.Timer += 15f;
             gameView.ShowNotificationsWithTimer("+15s bonus time!", 3f);
         }
+        
+        int xp = PlayerProgression.Instance.CalculateXP(ctrl.RequiredClicks);
+        PlayerProgression.Instance.AddXP(xp);
 
         piniatasOpenedSinceLastBomb++;
         piniatasOpenedSinceLastCritical++;
@@ -443,6 +446,8 @@ public class GameManager : MonoBehaviour
             {
                 gameModel.Score += (int)(ctrl.RequiredClicks * goldenMultiplierValue);
                 destroyedPiniataCount++;
+                int xp = PlayerProgression.Instance.CalculateXP(ctrl.RequiredClicks);
+                PlayerProgression.Instance.AddXP(xp);
             }
             
             if (piniataSmashParticle != null)
@@ -516,6 +521,8 @@ public class GameManager : MonoBehaviour
                 {
                     gameModel.Score += (int)((ctrl.RequiredClicks + randomX) * goldenMultiplierValue);
                     destroyedPiniataCount++;
+                    int xp = PlayerProgression.Instance.CalculateXP(ctrl.RequiredClicks);
+                    PlayerProgression.Instance.AddXP(xp);
                 }
                 
                 if (piniataSmashParticle != null)

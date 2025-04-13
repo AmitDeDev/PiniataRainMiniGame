@@ -7,6 +7,7 @@ public class MainMenuManager : MonoBehaviour
 
     [Header("Managers / Views / Audio")]
     [SerializeField] private MainMenuView mainMenuView;
+    [SerializeField] private ProgressionView progressionView;
     [SerializeField] private SceneLoader sceneLoader;
     [SerializeField] private AudioManager audioManager;
 
@@ -42,6 +43,7 @@ public class MainMenuManager : MonoBehaviour
         if (!gameRulesPopup) return;
         
         audioManager?.PlayPiniataClickSound();
+        progressionView?.SetVisible(false);
         gameRulesPopup.SetActive(true);
         isGameRulePopupActive = true;
     }
@@ -62,7 +64,8 @@ public class MainMenuManager : MonoBehaviour
         if (bestDestroyedText) bestDestroyedText.text = $"Highest Piniata Destroyed Amount: {bestDestroyed}";
         if (bestBombUsedText) bestBombUsedText.text = $"Highest Bombs Used: {bestBombUsed}";
         if (bestCriticalUsedText) bestCriticalUsedText.text = $"Highest Critical HIT's Used: {bestCritUsed}";
-
+    
+        progressionView?.SetVisible(false);
         bestScorePopup.SetActive(true);
         isBestScorePopupActive = true;
     }
@@ -80,6 +83,7 @@ public class MainMenuManager : MonoBehaviour
             bestScorePopup.SetActive(false);
             isBestScorePopupActive = false;
         }
+        progressionView?.SetVisible(true);
     }
     
     public void OnPlayGameClicked()

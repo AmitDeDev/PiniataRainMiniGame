@@ -29,6 +29,9 @@ public class GameView : MonoBehaviour
 
     [Header("Notifications")]
     [SerializeField] private GameObject Notifications;
+    
+    [Header("Views")]
+    [SerializeField] private ProgressionView progressionView;
 
     private GameManager gameManager;
 
@@ -113,6 +116,8 @@ public class GameView : MonoBehaviour
     {
         if (pausePopup) 
             pausePopup.SetActive(show);
+        
+        progressionView?.SetVisible(!show);
     }
     
     public void ShowGameOverPopup(int finalScore, int finalDestroyed, int finalBombUsed, int finalCritUsed)
@@ -120,6 +125,7 @@ public class GameView : MonoBehaviour
         if (gameOverPopup)
         {
             gameOverPopup.SetActive(true);
+            progressionView?.SetVisible(false);
             if (finalScoreText)       finalScoreText.text       = $"Coins Collected:  {finalScore}";
             if (finalDestroyedText)   finalDestroyedText.text   = $"Piniatas Destroyed: {finalDestroyed}";
             if (finalBombUsedText)    finalBombUsedText.text    = $"Bomb Used: {finalBombUsed}";
@@ -135,6 +141,7 @@ public class GameView : MonoBehaviour
     public void OnContinueButtonClicked()
     {
         gameManager?.ResumeGame();
+        progressionView?.SetVisible(true);
     }
 
     public void OnPauseMenuBackClicked()
@@ -146,11 +153,13 @@ public class GameView : MonoBehaviour
     public void OnGameOverPlayAgainClicked()
     {
         gameManager?.RestartGame();
+        progressionView?.SetVisible(true);
     }
 
     public void OnGameOverMainMenuClicked()
     {
         gameManager?.BackToMainMenuFromGameOver();
+        progressionView?.SetVisible(true);
     }
     
     #endregion
