@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
 
     [Header("General References")]
     [SerializeField] private GameView gameView;
+    [SerializeField] private ProgressionView progressionView;
     [SerializeField] private GameObject piniataPrefab;
     [SerializeField] private Transform piniataSpawnPoint;
     [SerializeField] private Transform piniataDestroyPoint;
@@ -418,6 +419,7 @@ public class GameManager : MonoBehaviour
         vibrate.DefaultVibration();
         gameModel.BombCount--;
         bombsUsedInSession++;
+        int totalXP = 0;
 
         OnBombCountUpdated?.Invoke(gameModel.BombCount);
         audioManager?.PlayBombSound();
@@ -446,8 +448,7 @@ public class GameManager : MonoBehaviour
             {
                 gameModel.Score += (int)(ctrl.RequiredClicks * goldenMultiplierValue);
                 destroyedPiniataCount++;
-                int xp = PlayerProgression.Instance.CalculateXP(ctrl.RequiredClicks);
-                PlayerProgression.Instance.AddXP(xp);
+                totalXP += PlayerProgression.Instance.CalculateXP(ctrl.RequiredClicks);
             }
             
             if (piniataSmashParticle != null)
@@ -456,6 +457,11 @@ public class GameManager : MonoBehaviour
             }
             activePiniatas.Remove(ctrl);
             Destroy(ctrl.gameObject);
+        }
+        
+        if (totalXP > 0)
+        {
+            PlayerProgression.Instance.AddXP(totalXP);
         }
 
         OnScoreUpdated?.Invoke(gameModel.Score);
@@ -486,6 +492,7 @@ public class GameManager : MonoBehaviour
         vibrate.DefaultVibration();
         gameModel.CriticalCount--;
         criticalUsedInSession++;
+        int totalXP = 0;
 
         OnCriticalCountUpdated?.Invoke(gameModel.CriticalCount);
         audioManager?.PlayCriticalSound();
@@ -521,8 +528,8 @@ public class GameManager : MonoBehaviour
                 {
                     gameModel.Score += (int)((ctrl.RequiredClicks + randomX) * goldenMultiplierValue);
                     destroyedPiniataCount++;
-                    int xp = PlayerProgression.Instance.CalculateXP(ctrl.RequiredClicks);
-                    PlayerProgression.Instance.AddXP(xp);
+                    totalXP += PlayerProgression.Instance.CalculateXP(ctrl.RequiredClicks);
+
                 }
                 
                 if (piniataSmashParticle != null)
@@ -536,6 +543,11 @@ public class GameManager : MonoBehaviour
             {
                 ctrl.UpdateClicksText();
             }
+        }
+        
+        if (totalXP > 0)
+        {
+            PlayerProgression.Instance.AddXP(totalXP);
         }
         
         gameView.UpdateScore(gameModel.Score);
@@ -601,6 +613,7 @@ public class GameManager : MonoBehaviour
         }
 
         gameView.ShowPausePopup(false);
+        progressionView?.SetVisible(true);
         Time.timeScale = 1f;
         audioManager?.PlayPiniataClickSound();
     }
@@ -613,6 +626,7 @@ public class GameManager : MonoBehaviour
         }
 
         Time.timeScale = 1f;
+        progressionView?.SetVisible(true);
         audioManager?.PlayPiniataClickSound();
         sceneLoader.LoadNextScene();
     }
