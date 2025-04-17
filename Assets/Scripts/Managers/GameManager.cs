@@ -371,6 +371,9 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         isGameOver = true;
         
+        int earnedCoins = gameModel.Score;
+        BalanceController.Instance.AddCoins(earnedCoins);
+        
         foreach (var ctrl in activePiniatas)
         {
             Destroy(ctrl.gameObject);

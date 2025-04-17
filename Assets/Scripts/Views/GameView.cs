@@ -111,7 +111,7 @@ public class GameView : MonoBehaviour
     #endregion
 
     # region Popups
-    //TODO something here is messing up with the pause popup and the progression need to be fixed
+    
     public void ShowPausePopup(bool show)
     {
         if (pausePopup)
@@ -143,7 +143,7 @@ public class GameView : MonoBehaviour
     public void OnContinueButtonClicked()
     {
         gameManager?.ResumeGame();
-        //progressionView?.SetVisible(true);
+        progressionView?.SetVisible(true);
     }
 
     public void OnPauseMenuBackClicked()

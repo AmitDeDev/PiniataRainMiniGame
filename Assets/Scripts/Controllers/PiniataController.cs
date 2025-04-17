@@ -15,6 +15,7 @@ public class PiniataController : MonoBehaviour
     private Transform destroyPoint;
     private Rigidbody2D rb2d;
     private Tween activeSquishTween;
+    private Vector3 originalScale;
 
     public int RequiredClicks
     {
@@ -34,6 +35,8 @@ public class PiniataController : MonoBehaviour
         model = new PiniataModel(required);
 
         rb2d = GetComponent<Rigidbody2D>();
+        originalScale = transform.localScale;
+
         UpdateClicksText();
     }
 
@@ -85,7 +88,8 @@ public class PiniataController : MonoBehaviour
             activeSquishTween.Kill();
         }
 
-        Vector3 originalScale = transform.localScale;
+        transform.localScale = originalScale; // Always reset before new squash
+
         activeSquishTween = transform.DOScale(originalScale * 0.8f, 0.1f)
             .OnComplete(() =>
             {
@@ -98,7 +102,7 @@ public class PiniataController : MonoBehaviour
             rb2d.AddForce(new Vector2(0, bounceForce), ForceMode2D.Impulse);
         }
     }
-
+    
     private void OnDestroy()
     {
         if (activeSquishTween != null && activeSquishTween.IsActive())

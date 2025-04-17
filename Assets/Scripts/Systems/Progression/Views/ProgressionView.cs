@@ -91,14 +91,17 @@ public class ProgressionView : MonoBehaviour
         {
             gameObject.SetActive(true);
             canvasGroup.alpha = 0f;
-            canvasGroup.DOFade(1f, fadeDuration);
+            canvasGroup.DOFade(1f, fadeDuration)
+                .SetUpdate(true); // runs even during pause
         }
         else
         {
             canvasGroup.DOFade(0f, fadeDuration)
+                .SetUpdate(true) // runs even during pause
                 .OnComplete(() => gameObject.SetActive(false));
         }
     }
+
 
     private void ShowXPGainText(string text)
     {
